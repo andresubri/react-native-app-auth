@@ -7,6 +7,7 @@
 #import <React/RCTLog.h>
 #import <React/RCTConvert.h>
 #import "RNAppAuthAuthorizationFlowManager.h"
+#import "OIDExternalUserAgentIOSSafariViewController.h"
 
 @interface RNAppAuth()<RNAppAuthAuthorizationFlowManagerDelegate> {
     id<OIDExternalUserAgentSession> _currentSession;
@@ -308,7 +309,10 @@ RCT_REMAP_METHOD(credentialBuilder,
     }];
 
     UIViewController *presentingViewController = appDelegate.window.rootViewController.view.window ? appDelegate.window.rootViewController : appDelegate.window.rootViewController.presentedViewController;
-
+    
+    OIDExternalUserAgentIOSSafariViewController *externalUserAgent =
+          [[OIDExternalUserAgentIOSSafariViewController alloc] initWithPresentingViewController:appDelegate.window.rootViewController];
+    
     if (skipCodeExchange) {
         _currentSession = [OIDAuthorizationService presentAuthorizationRequest:request
                                    presentingViewController:presentingViewController
