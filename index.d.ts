@@ -156,3 +156,10 @@ type ErrorCode =
 export interface AppAuthError extends Error {
   code: ErrorCode;
 }
+
+export function credentialBuilder(): Promise<{
+  codeChallenge: string;
+  codeVerifier: string;
+  nonce: string;
+  state: string;
+}>;

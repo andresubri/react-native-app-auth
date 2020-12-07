@@ -13,8 +13,10 @@ import androidx.browser.customtabs.CustomTabsCallback;
 import androidx.browser.customtabs.CustomTabsClient;
 import androidx.browser.customtabs.CustomTabsServiceConnection;
 import androidx.browser.customtabs.CustomTabsSession;
+import android.util.Base64;
 
 import com.facebook.react.bridge.ActivityEventListener;
+import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
@@ -24,6 +26,7 @@ import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.bridge.ReadableType;
 
+import com.rnappauth.utils.DateUtil;
 import com.rnappauth.utils.MapUtil;
 import com.rnappauth.utils.UnsafeConnectionBuilder;
 import com.rnappauth.utils.RegistrationResponseFactory;
@@ -31,6 +34,8 @@ import com.rnappauth.utils.TokenResponseFactory;
 import com.rnappauth.utils.CustomConnectionBuilder;
 
 import net.openid.appauth.AppAuthConfiguration;
+import net.openid.appauth.CodeVerifierUtil;
+import net.openid.appauth.AuthState;
 import net.openid.appauth.AuthorizationException;
 import net.openid.appauth.AuthorizationRequest;
 import net.openid.appauth.AuthorizationResponse;
@@ -47,6 +52,7 @@ import net.openid.appauth.TokenRequest;
 import net.openid.appauth.connectivity.ConnectionBuilder;
 import net.openid.appauth.connectivity.DefaultConnectionBuilder;
 
+import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -71,6 +77,7 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
     private String clientSecret;
     private final ConcurrentHashMap<String, AuthorizationServiceConfiguration> mServiceConfigurations = new ConcurrentHashMap<>();
     private boolean isPrefetched = false;
+    private static final int STATE_LENGTH = 16;
 
     public RNAppAuthModule(ReactApplicationContext reactContext) {
         super(reactContext);
@@ -371,6 +378,26 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
                     builder);
         }
 
+    }
+
+    @ReactMethod
+    public void credentialBuilder(
+            final Promise promise
+    ) {
+        try {
+            WritableMap map = Arguments.createMap();
+
+            String codeVerifier = CodeVerifierUtil.generateRandomCodeVerifier();
+
+            map.putString("codeVerifier", codeVerifier);
+            map.putString("codeChallenge", CodeVerifierUtil.deriveCodeVerifierChallenge(codeVerifier));
+            map.putString("nonce", RNAppAuthModule.generateRandomState());
+            map.putString("state", RNAppAuthModule.generateRandomState());
+
+            promise.resolve(map);
+        } catch (Exception e) {
+            promise.reject("Failed to generate code challenge", e.getMessage());
+        }
     }
 
     /*
@@ -757,6 +784,13 @@ public class RNAppAuthModule extends ReactContextBaseJavaModule implements Activ
                 tokenEndpoint,
                 registrationEndpoint
         );
+    }
+
+    private static String generateRandomState() {
+        SecureRandom sr = new SecureRandom();
+        byte[] random = new byte[STATE_LENGTH];
+        sr.nextBytes(random);
+        return Base64.encodeToString(random, Base64.NO_WRAP | Base64.NO_PADDING | Base64.URL_SAFE);
     }
 
     private void warmChromeCustomTab(Context context, final String issuer) {
