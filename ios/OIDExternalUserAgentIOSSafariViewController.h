@@ -6,9 +6,7 @@
         Licensed under the Apache License, Version 2.0 (the "License");
         you may not use this file except in compliance with the License.
         You may obtain a copy of the License at
-
         http://www.apache.org/licenses/LICENSE-2.0
-
         Unless required by applicable law or agreed to in writing, software
         distributed under the License is distributed on an "AS IS" BASIS,
         WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -22,15 +20,21 @@
 #import "OIDExternalUserAgent.h"
 #import "OIDExternalUserAgentIOS.h"
 
-#if __has_include(<AppAuth/AppAuth.h>)
-#import <AppAuth/AppAuth.h>
-#else
-#import "AppAuth.h"
-#endif
-
 NS_ASSUME_NONNULL_BEGIN
 
-/*! @brief A special-case iOS external user-agent that always uses
+/*! @brief Allows library consumers to bootstrap an @c SFSafariViewController as they see fit.
+    @remarks Useful for customizing tint colors and presentation styles.
+ */
+@protocol OIDSafariViewControllerFactory
+
+/*! @brief Creates and returns a new @c SFSafariViewController.
+    @param URL The URL which the @c SFSafariViewController should load initially.
+ */
+- (SFSafariViewController *)safariViewControllerWithURL:(NSURL *)URL;
+
+@end
+
+/*! @brief A special-case iOS external user-agent that always uses 
         \SFSafariViewController (on iOS 9+). Most applications should use
         the more generic @c OIDExternalUserAgentIOS to get the default
         AppAuth user-agent handling with the benefits of Single Sign-on (SSO)

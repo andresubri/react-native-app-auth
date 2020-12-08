@@ -23,13 +23,6 @@
 #import "OIDErrorUtilities.h"
 #import "OIDExternalUserAgentSession.h"
 #import "OIDExternalUserAgentRequest.h"
-#import "OIDExternalUserAgentIOS.h"
-
-#if __has_include(<AppAuth/AppAuth.h>)
-#import <AppAuth/AppAuth.h>
-#else
-#import "AppAuth.h"
-#endif
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -164,6 +157,16 @@ static id<OIDSafariViewControllerFactory> __nullable gSafariViewControllerFactor
                                     underlyingError:nil
                                         description:nil];
   [session failExternalUserAgentFlowWithError:error];
+}
+
+@end
+
+@implementation OIDDefaultSafariViewControllerFactory
+
+- (SFSafariViewController *)safariViewControllerWithURL:(NSURL *)URL NS_AVAILABLE_IOS(9.0) {
+  SFSafariViewController *safariViewController =
+      [[SFSafariViewController alloc] initWithURL:URL entersReaderIfAvailable:NO];
+  return safariViewController;
 }
 
 @end
